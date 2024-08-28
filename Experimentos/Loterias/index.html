@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Loterias</title>
+    <style>
+        .volante {
+            display: grid;
+            gap: 5px;
+            grid-template-columns: repeat(5, 50px);
+            grid-template-rows: repeat(5, 50px);
+            justify-content: center;
+        }
+        .numero {
+            background-color: aliceblue;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 50px;
+            cursor: pointer;
+            border: solid 1px black;
+            border-radius: 50%;
+        }
+        .numero[selecionado] {
+            background-color: sandybrown;
+            user-select: none;
+        }
+        .jogo {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            margin-bottom: 5px;
+        }
+        .jogoNum {
+            border: solid 1px black;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            margin-bottom: -1px;
+            margin-right: -1px;
+        }
+        .remover {
+            background-color: red;
+            color: aliceblue;
+            width: 20px;
+            border: solid 1px black;
+            text-align: center;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .painel1 {
+            display: flex;
+        }
+        .painel1_1 {
+            background-color: azure;
+            width: 600px;
+            border: solid 1px black;
+        }
+        .painel1_2 {
+            width: 100%;
+            height: 400px;
+            padding: 10px;
+            border: solid 1px black;
+            margin-left: 5px;
+        }
+        .painelGraficos {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        .title {
+            background-color: azure;
+            border: solid 1px black;
+            padding-left: 10px;
+        }
+        .helper {
+            display: none;
+            background-color:rgb(253, 255, 211);
+            box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+            padding: 15px;
+        }
+    </style>
+    <script>
+        var jogos = [];
+        var quantidadeSelecionada = 0;
+        var quantidadeDeJogos = 0;
+        var quantidadeDeSorteios = 0;
+        var dadosHistograma = [];
+        var quantidadeDeJogosHistorico = [];
+        var quantidadeDeSorteiosHistorico = [];
+        function toggleHelper() {
+            console.log(document.getElementsByClassName("helper")[0].style)
+            if (document.getElementsByClassName("helper")[0].style.display == "") {
+                document.getElementsByClassName("helper")[0].style.display = "block"
+            }
+            else {
+                document.getElementsByClassName("helper")[0].style.display = ""
+            }
+        }
+        function resetarResultados(hardReset=false) {
+            quantidadeDeJogos = 0;
+            quantidadeDeSorteios = 0;
+            dadosHistograma = [];
+            if (hardReset) {
+                quantidadeDeJogosHistorico = [];
+                quantidadeDeSorteiosHistorico = [];
+            }
+            document.getElementById("resultado").innerHTML = "";
+            document.getElementById("histograma").innerHTML = "";
+            document.getElementById("graficoDeHistorico").innerHTML = "";
+        }
+        function selecionarNumero(e) {
+            e.target.toggleAttribute("selecionado");
+            if (e.target.hasAttribute("selecionado")) {
+                if (quantidadeSelecionada == 20) {
+                    e.target.toggleAttribute("selecionado");
+                    return;
+                }
+                quantidadeSelecionada++;
+            } else {
+                quantidadeSelecionada--;
+            }
+            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada;
+        }
+        function limparSelecao() {
+            Array.from(document.getElementsByClassName("volante")[0].children).forEach(tag => {
+                tag.removeAttribute("selecionado");
+            });
+            quantidadeSelecionada = 0;
+            document.getElementById("quantidadeSpan").innerHTML = 0;
+        }
+        function adicionarJogo() {
+            if (quantidadeSelecionada < 15) {
+                return;
+            }
+            numeros = [];
+            Array.from(document.getElementsByClassName("volante")[0].children).forEach(tag => {
+                if (tag.hasAttribute("selecionado")) {
+                    numeros.push(Number(tag.getAttribute("num")));
+                }
+            });
+            jogos.push(numeros);
+            limparSelecao();
+            atualizarJogos();
+        }
+        function atualizarJogos() {
+            document.getElementById("jogos").innerHTML = "";
+            document.getElementById("quantidadeDeJogos").innerHTML = "["+jogos.length+"]";
+            jogos.forEach((jogo,i) => {
+                div = document.createElement("div");
+                div.classList.add("jogo");
+                document.getElementById("jogos").appendChild(div);
+                divElement = document.getElementById("jogos").lastChild;
+                divElement.setAttribute("index",i);
+                removerDiv = document.createElement("div");
+                removerDiv.classList.add("remover");
+                removerDiv.innerHTML = "X";
+                removerDiv.setAttribute("onclick","removerJogo(event)");
+                divElement.appendChild(removerDiv);
+                divNumeros = document.createElement("div");
+                divElement.appendChild(divNumeros);
+                divElement.lastChild.style.display = "flex";
+                divElement.lastChild.style.flexWrap = "wrap";
+                jogo.forEach((numero) => {
+                    divNum = document.createElement("div");
+                    divNum.innerHTML = numero;
+                    divNum.classList.add("jogoNum");
+                    divElement.lastChild.appendChild(divNum);
+                });
+            });
+        }
+        function selecionarAleatorio() {
+            limparSelecao();
+            contador = 0;
+            while(contador < 15) {
+                index = Math.floor(Math.random() * 25);
+                el = document.getElementsByClassName("volante")[0].children[index];
+                if (!el.hasAttribute("selecionado")) {
+                    el.setAttribute("selecionado",true);
+                    contador++;
+                }
+            }
+            quantidadeSelecionada = 15;
+            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada;
+        }
+        function removerJogo(e) {
+            Array.from(document.getElementById("jogos").children).forEach((jogo,i) => {
+                if (jogo.getAttribute("index") == e.target.parentNode.getAttribute("index")) {
+                    document.getElementById("jogos").removeChild(jogo);
+                    jogos.splice(i,1);
+                    return;
+                }
+            });
+            atualizarJogos();
+        }
+        function sortearResultado() {
+            numeros = [...Array(25).keys()].map(i => i+1);
+            numerosSorteados = [];
+            for (let i=0; i<15; i++) {
+                index = Math.floor(Math.random()*numeros.length);
+                numerosSorteados.push(numeros[index]);
+                numeros.splice(index,1);
+            }
+            return numerosSorteados;
+        }
+        function compararResultados(aposta, resultado) {
+            acertos = 0;
+            resultado.forEach((numero) => {
+                if (aposta.includes(numero)) {
+                    acertos++;
+                }
+            });
+            return acertos;
+        }
+        function jogarAteGanhar() {
+            if (jogos.length == 0) {
+                document.getElementById("resultado").innerHTML = "Nenhum jogo realizado.";
+                return;
+            }
+            resetarResultados();
+            document.getElementById("resultado").innerHTML = "AGUARDE...";
+            setTimeout(() => {
+                jogoPremiado = undefined;
+                while (jogoPremiado == undefined) {
+                    quantidadeDeSorteios++;
+                    resultado = sortearResultado();
+                    jogos.forEach((jogo) => {
+                        quantidadeDeJogos++;
+                        acertos = compararResultados(jogo, resultado);
+                        dadosHistograma.push(acertos);
+                        if (acertos == 15) {
+                            jogoPremiado = jogo;
+                        }
+                    });
+                }
+                quantidadeDeJogosHistorico.push(quantidadeDeJogos);
+                quantidadeDeSorteiosHistorico.push(quantidadeDeSorteios);
+                atualizarHistograma();
+                atualizarGraficoDeHistorico();
+                document.getElementById("resultado").innerHTML = 
+                "Jogo premiado: " + jogoPremiado + "<br>" + 
+                "Quantidade de jogos: " + quantidadeDeJogos.toLocaleString() + "<br>" + 
+                "Quantidade de sorteios: " + quantidadeDeSorteios.toLocaleString();
+            }, 100)
+        }
+        function atualizarHistograma() {
+            var trace = {
+                x: dadosHistograma,
+                type: 'histogram',
+            };
+            var layout = {
+                title: {
+                    text: "Histograma de Quantidade de Acertos",
+                },
+                width: 600,
+                height: 250,
+            }
+            var data = [trace];
+            Plotly.newPlot('histograma', data, layout);
+        }
+        function atualizarGraficoDeHistorico() {
+            var trace1 = {
+                y: quantidadeDeSorteiosHistorico,
+                name: "Total de sorteios",
+                type: 'scatter'
+            };
+            somaSorteios = 0
+            quantidadeDeSorteiosHistorico.forEach((quantidade) => {
+                somaSorteios += quantidade;
+            });
+            media = Array(quantidadeDeSorteiosHistorico.length).fill(Math.floor(somaSorteios/quantidadeDeSorteiosHistorico.length));
+            var trace2 = {
+                y: media,
+                name: "Média",
+                type: 'scatter'
+            };
+            var layout = {
+                title: {
+                    text: "Histórico"
+                },
+                width:600,
+                height: 300,
+            }
+            var data = [trace1, trace2];
+            Plotly.newPlot('graficoDeHistorico', data, layout);
+        }
+    </script>
+</head>
+<body>
+    <a href="#" onclick="toggleHelper()">
+        <i class="fa-regular fa-circle-question"></i>
+    </a>
+    <div class="helper">
+        Instruções:<br>
+        1. Selecione de 15 à 20 números ou clique no botão "Jogo aleatório";<br>
+        2. Clique no botão adicionar jogo;<br>
+        3. Após adicionar todos os jogos desejados clique no botão "Jogar até ganhar";<br>
+        4. O sistema irá gerar 15 números aleatórios e comparar com todos os jogos adicionados até que o número de acertos seja igual a 15;<br>
+        <br>
+        Como resultado serão apresentados a combinação premiada, a quantidade de sorteios realizados e a quantidade de jogos testados.<br>
+        Um gráfico do tipo histograma irá exibir a frequência de quantidade de acertos, indicando quantos acertos são considerados mais raros e quantos são mais comuns.<br>
+        <br>
+        O objetivo deste experimento é demonstrar como é difícil ganhar o prêmio máximo em uma loteria desse tipo. Apesar do jogo te possibilitar escolher 15 dos 25 números, o que representa 60% da cartela preenchida, acertar a combinação dos 15 números é extremamente difícil.<br>
+        Aumentando a quantidade de números apostados as chances de acerto também aumentam, porém para isso o preço da aposta também aumenta.<br>
+        <br>
+        Abaixo estão as probabilidades calculadas para cada tipo de aposta:<br>
+        <ul>
+            <li>Aposta de 15 números: 1 em 3.268.760</li>
+            <li>Aposta de 16 números: 1 em 204.298</li>
+            <li>Aposta de 17 números: 1 em 24.035</li>
+            <li>Aposta de 18 números: 1 em 4.006</li>
+            <li>Aposta de 19 números: 1 em 843</li>
+            <li>Aposta de 20 números: 1 em 211</li>
+        </ul>
+        <br>
+        No último gráfico que mostra o histórico da quantidade de sorteios realizados em cada experimento é possível observar que quantos mais simulações forem feitas mais a média se aproxima das probabilidades calculadas acima (Lei dos Grandes Números).
+    </div>
+    <h1 class="title">Simulador de Loteria</h1>
+    <div class="painel1">
+        <div class="painel1_1">
+            <div style="text-align: center;">
+                <br>
+                <div style="text-align: center;">
+                    Escolha de 15, 16, 17, 18, 19 ou 20 números.
+                </div>
+                <hr>
+                <div>
+                    <button onclick="adicionarJogo()">Adicionar jogo</button>
+                    <button onclick="selecionarAleatorio()">Jogo aleatório</button>
+                    <button style="color: red;" onclick="limparSelecao()">Limpar seleção</button>
+                </div><hr>
+                <div class="volante">
+                    <div class="numero" onclick="selecionarNumero(event)" num=1>01</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=2>02</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=3>03</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=4>04</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=5>05</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=6>06</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=7>07</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=8>08</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=9>09</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=10>10</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=11>11</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=12>12</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=13>13</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=14>14</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=15>15</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=16>16</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=17>17</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=18>18</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=19>19</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=20>20</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=21>21</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=22>22</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=23>23</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=24>24</div>
+                    <div class="numero" onclick="selecionarNumero(event)" num=25>25</div>
+                </div>
+                <div>
+                    <h4>Quantidade selecionada: <span id="quantidadeSpan">0</span></h4>
+                </div>
+            </div>
+        </div>
+        <div class="painel1_2">
+            <div>
+                <button onclick="jogarAteGanhar();">Jogar até ganhar</button>
+                <button onclick="resetarResultados(true)" style="color: red;">Resetar</button>
+            </div>
+            <hr>
+            <div id="resultado"></div>
+            <hr>
+            <div class="painelGraficos">
+                <div id="histograma"></div>
+                <div id="graficoDeHistorico"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div style="text-align: left; padding-left: 10px;"><h4>Jogos <span id="quantidadeDeJogos">[0]</span></h4></div>
+    <div id="jogos">
+    </div>
+</body>
+</html>

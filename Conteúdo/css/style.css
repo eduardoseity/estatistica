@@ -1,0 +1,11 @@
+body {
+    background-color: white;
+    color: black;
+}
+h1, h2, h3 {
+    color: #91c225;
+}
+ul>li::marker {
+    color: #91c225;
+    list-style: armenian;
+}

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Monty Hall</title>
+    <style>
+        table, td, th {
+            border: solid 1px black;
+            text-align: center;
+        }
+        .panel {
+            background-color: azure;
+            border: solid 1px black;
+            padding: 10px;
+        }
+        .door {
+            background-color: darkgoldenrod;
+            border: solid 1px black;
+            width: 200px;
+            height: 300px;
+            margin: 10px;
+        }
+        .doorContainer {
+            display: flex;
+            justify-content: center;
+        }
+        .selectedDoor {
+            filter: brightness(1.5);
+            box-shadow: 0 0 5px 5px #6673ff;
+        }
+        .wrongDoor {
+            background-image: url("img/cabra.jpg");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: red;
+        }
+        .rightDoor {
+            background-image: url("img/carro.jpg");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: green;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+        }
+        .helper {
+            display: none;
+            background-color:rgb(253, 255, 211);
+            box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+            padding: 15px;
+        }
+    </style>
+    <script>
+        var selectedDoor = null;
+        var originalChoice = null;
+        var firstSelect = true;
+        var doors = [0,0,0];
+        var rightDoor = null;
+        var noChangeOKCount = 0;
+        var noChangeFailCount = 0;
+        var changeOKCount = 0;
+        var changeFailCount = 0;
+        function toggleHelper() {
+            console.log(document.getElementsByClassName("helper")[0].style)
+            if (document.getElementsByClassName("helper")[0].style.display == "") {
+                document.getElementsByClassName("helper")[0].style.display = "block"
+            }
+            else {
+                document.getElementsByClassName("helper")[0].style.display = ""
+            }
+        }
+        function selectDoor(e) {
+            if (e.target.classList.contains("wrongDoor") || e.target.classList.contains("rightDoor")) {
+                return;
+            }
+            document.getElementById("door0").classList.remove("selectedDoor");
+            document.getElementById("door1").classList.remove("selectedDoor");
+            document.getElementById("door2").classList.remove("selectedDoor");
+            e.target.classList.add("selectedDoor");
+            if (e.target.id == "door0") {
+                selectedDoor = 0;
+            }
+            else if (e.target.id == "door1") {
+                selectedDoor = 1;
+            }
+            else {
+                selectedDoor = 2;
+            }
+            if (firstSelect) {
+                originalChoice = selectedDoor;
+                revealOneDoor();
+            }
+            else {
+                if (selectedDoor == originalChoice) {
+                    document.getElementById("tip").innerHTML = "Deseja trocar de porta?"
+                }
+                else {
+                    document.getElementById("tip").innerHTML = "Porta trocada"
+                }
+            }
+        }
+        function randomizeDoors() {
+            doors = [0,0,0];
+            randomDoor = Math.floor(Math.random() * 3);
+            doors[randomDoor] = 1;
+            rightDoor = randomDoor;
+        }
+        function revealOneDoor() {
+            randomDoor = Math.floor(Math.random() * 3);
+            if (randomDoor == selectedDoor) {
+                revealOneDoor();
+            }
+            else if (doors[randomDoor] == 1) {
+                revealOneDoor();
+            }
+            else {
+                document.getElementById("door"+randomDoor).classList.add("wrongDoor");
+            }
+            firstSelect = false;
+            document.getElementById("tip").innerHTML = "Deseja trocar de porta?"
+            document.getElementById("revealButton").disabled = false;
+        }
+        function reveal() {
+            for (let i=0; i<3; i++) {
+                if (doors[i] == 1) {
+                    if (!document.getElementById("door"+i).classList.contains("rightDoor")) {
+                        document.getElementById("door"+i).classList.add("rightDoor");
+                    }
+                }
+                else {
+                    if (!document.getElementById("door"+i).classList.contains("wrongDoor")) {
+                        document.getElementById("door"+i).classList.add("wrongDoor");
+                    }
+                }
+            }
+            if (rightDoor == selectedDoor) {
+                if (selectedDoor == originalChoice) {
+                    noChangeOKCount++;
+                }
+                else {
+                    changeOKCount++;
+                }
+            }
+            else {
+                if (selectedDoor == originalChoice) {
+                    noChangeFailCount++;
+                }
+                else {
+                    changeFailCount++;
+                }
+            }
+            document.getElementById("noChangeOK").innerHTML = noChangeOKCount;
+            document.getElementById("noChangeFail").innerHTML = noChangeFailCount;
+            document.getElementById("changeOK").innerHTML = changeOKCount;
+            document.getElementById("changeFail").innerHTML = changeFailCount;
+
+            totalNoChange = (noChangeFailCount+noChangeOKCount);
+            totalChange = (changeFailCount+changeOKCount);
+
+            document.getElementById("noChangeTotal").innerHTML = totalNoChange;
+            document.getElementById("changeTotal").innerHTML = totalChange;
+
+            if (totalNoChange > 0) {
+                document.getElementById("noChangeRate").innerHTML = Math.floor(noChangeOKCount/(noChangeFailCount+noChangeOKCount)*100)+"%";
+            }
+            if (totalChange > 0) {
+                document.getElementById("changeRate").innerHTML = Math.floor(changeOKCount/(changeFailCount+changeOKCount)*100)+"%";
+            }
+
+            document.getElementById("total").innerHTML = "Total de jogos: "+(noChangeFailCount+noChangeOKCount+changeFailCount+changeOKCount);
+            document.getElementById("revealButton").disabled = true;
+        }
+        function reset() {
+            document.getElementById("revealButton").disabled = true;
+            selectedDoor = null;
+            firstSelect = true;
+            originalChoice = null;
+            rightDoor = null;
+            doors = [0,0,0];
+            for (let i=0; i<3; i++) {
+                document.getElementById("door"+i).classList.remove("wrongDoor");
+                document.getElementById("door"+i).classList.remove("rightDoor");
+                document.getElementById("door"+i).classList.remove("selectedDoor");
+            }
+            randomizeDoors();
+            document.getElementById("tip").innerHTML = "Escolha uma das 3 portas"
+        }
+    </script>
+</head>
+<body>
+    <script>randomizeDoors()</script>
+    <a href="#" onclick="toggleHelper()">
+        <i class="fa-regular fa-circle-question"></i>
+    </a>
+    <div class="helper">
+        O objetivo do jogo é encontrar a porta que esconde o carro. As outras duas portas escondem um bode.<br>
+        <br>
+        Instruções:<br>
+        1. Escolha uma das 3 portas e automaticamente uma das portas erradas será aberta revelando um dos bodes.<br>
+        2. Você deve escolher entre permanecer com a sua escolha original ou trocar de porta.<br>
+        3. Clique no botão "revelar" para abrir todas as portas e descobrir se você levou o prêmio ou não.<br>
+        <br>
+        Uma tabela será preenchida automaticamente contendo os resultados classificados entre as condições "sem troca", quando você permanece com a escolha original ou "com troca", quando você decide trocar de porta. Na tabela é possível verificar a taxa de acerto de cada condição.<br>
+        <br>
+        O objetivo deste experimento é demonstrar como a troca de porta é mais vantajosa do que permanecer com a escolha original.<br>
+        É comum imaginarmos que não há diferença entre trocar de porta ou não, pois com duas opções as chances seriam de 50%. Porém, na condição inicial, quando tínhamos 3 portas para escolher, as chances de acerto eram de 1/3 e as chances de erro eram de 2/3, ou seja, é mais provável que se escolha a porta errada do que a certa. Ao revelar uma das portas erradas, e sabendo que inicialmente a chance de errar era maior, se torna mais vantajoso trocar de porta.<br>
+        <br>
+        Este problema pode ser facilmente entendido quando ilustramos todas as possibilidades ao trocar de porta, conforme abaixo.<br>
+        <br>
+        <img src="img/montyhall.png" alt="" width="600"><br>
+        <small>Fonte: https://pt.wikipedia.org/wiki/Problema_de_Monty_Hall</small>
+        <br><br>
+        Acima podemos ver que, apesar de contraintuitivo, ao trocar de porta temos 2/3 de chances de acerto.
+    </div>
+    <h1 class="panel">Problema de Monty Hall</h1>
+    <h2 class="panel" id="tip">Escolha uma das 3 portas</h2>
+    <div class="doorContainer">
+        <div class="door" id="door0" onclick="selectDoor(event)"></div>
+        <div class="door" id="door1" onclick="selectDoor(event)"></div>
+        <div class="door" id="door2" onclick="selectDoor(event)"></div>
+    </div>
+    <div class="buttons">
+        <button onclick="reveal()" id="revealButton" disabled>Revelar</button>
+        <button onclick="reset()">Reset</button>
+    </div>
+    <br>
+    <div class="panel">
+        <table>
+            <tr>
+                <th>Condição</th><th>Acertos</th><th>Erros</th><th>Total</th><th>Taxa de acerto</th>
+            </tr>
+            <tr>
+                <td>Sem troca</td>
+                <td id="noChangeOK">0</td>
+                <td id="noChangeFail">0</td>
+                <td id="noChangeTotal">0</td>
+                <td id="noChangeRate">0</td>
+            </tr>
+            <tr>
+                <td>Com troca</td>
+                <td id="changeOK">0</td>
+                <td id="changeFail">0</td>
+                <td id="changeTotal">0</td>
+                <td id="changeRate">0</td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <h3 id="total">Total de jogos: 0</h3>
+    </div>
+</body>
+</html>

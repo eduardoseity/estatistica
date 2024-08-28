@@ -1,0 +1,11 @@
+.helper {
+    display: none;
+    background-color:rgb(253, 255, 211);
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    padding: 15px;
+}
+h1.title {
+    background-color: azure;
+    padding: 10px;
+    border: solid 1px black;
+}

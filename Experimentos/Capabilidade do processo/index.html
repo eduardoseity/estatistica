@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        #panel1 {
+            display: flex;
+            justify-content: flex-start;
+            flex-grow: initial;
+        }
+        #menu {
+            border: solid 1px black;
+            padding: 5px;
+        }
+        #infoPanel {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 4;
+            flex-basis: 50%;
+        }
+        #scatterChart, #scatterChart2 {
+            border: solid 1px black;
+            margin-bottom: 5px;
+        }
+        #distributionCharts, #distributionCharts2 {
+            border: solid 1px black;
+            display: flex;
+            justify-content: flex-start;
+            flex-grow: initial;
+        }
+        #info, #info2 {
+            padding: 5px;
+            border: solid 1px black;
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js" integrity="sha512-d6sc8kbZEtA2LwB9m/ck0FhvyUwVfdmvTeyJRprmj7Wg9wRFtHDIpr6qk4g/y3Ix3O9I6KHIv6SGu9f7RaP1Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <script src="./main.js"></script>
+    <script src="./objects.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacidade do Processo</title>
+</head>
+<body>
+    <div id="panel1">
+        <div id="menu">
+            Exibir<hr>
+            <input type="checkbox" name="" id="showToleranceCheckbox" onchange="showTolerance = this.checked"> Tolerância<br>
+            <input type="checkbox" name="" id="showCenterCheckbox" onchange="showCenter = this.checked"> Centro<br>
+            <input type="checkbox" name="" id="showPointsCheckbox" onchange="showPoints = this.checked"> Pontos<br>
+            <input type="checkbox" name="" id="showInfo" onchange="showInfo(event)"> Gráficos X<br>
+            <input type="checkbox" name="" id="showInfo" onchange="showInfo2(event)"> Gráficos Y<br>
+            <br>
+            Movimento<hr>
+            <input type="checkbox" name="" id="jumpCheckbox" onchange="jump = this.checked" checked> Pular<br>
+            <br>
+            Configurações<hr>
+            Tamanho<br>
+            <input type="range" name="" id="size" min="100" max="500" step="10" value="250" oninput="_size = this.value;"><br>
+            Tolerância<br>
+            ± <input type="number" name="" id="toleranceInput" min="10" max="100" value="60" oninput="updateCharts(); tolerance = this.value;" onkeypress="updateCharts(); tolerance = this.value;" onclick="updateCharts(); tolerance = this.value;"><br>
+            <br>
+            Ações<hr>
+            <button onclick="circle.center()">Centralizar</button><br><br>
+            <button onclick="reset1()" style="color: red;">Resetar</button>
+        </div>
+        <div id="canvasContainer"></div>
+        <div id="infoPanel">
+            <div id="info">
+                <div id="scatterChart">
+                    <div id="count"></div>
+                </div>
+                <div id="distributionCharts">
+                    <div id="histogramChart"></div>
+                    <div id="bellChart"></div>
+                    <div id="statistics"></div>
+                </div>
+            </div>
+            <div id="info2">
+                <div id="scatterChart2">
+                    <div id="count2"></div>
+                </div>
+                <div id="distributionCharts2">
+                    <div id="histogramChart2"></div>
+                    <div id="bellChart2"></div>
+                    <div id="statistics2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let showTolerance = document.getElementById("showToleranceCheckbox").checked;
+        let showCenter = document.getElementById("showCenterCheckbox").checked;
+        let showPoints = document.getElementById("showPointsCheckbox").checked;
+        let jump = document.getElementById("jumpCheckbox").checked;
+        let _size = document.getElementById("size").value;
+        let tolerance = document.getElementById("toleranceInput").value;
+
+        function showInfo(event) {
+            if (event.target.checked) {
+                document.getElementById("info").style.display = 'block';
+            }
+            else {
+                document.getElementById("info").style.display = 'none';
+            }
+        }
+        function showInfo2(event) {
+            if (event.target.checked) {
+                document.getElementById("info2").style.display = 'block';
+            }
+            else {
+                document.getElementById("info2").style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
