@@ -56,11 +56,12 @@
         .painel1_1 {
             background-color: azure;
             width: 600px;
+            height: 425px;
             border: solid 1px black;
         }
         .painel1_2 {
             width: 100%;
-            height: 400px;
+            height: 405px;
             padding: 10px;
             border: solid 1px black;
             margin-left: 5px;
@@ -123,7 +124,7 @@
             } else {
                 quantidadeSelecionada--;
             }
-            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada;
+            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada + " (" + Math.floor(quantidadeSelecionada/25*100) +"% da cartela preenchida)";
         }
         function limparSelecao() {
             Array.from(document.getElementsByClassName("volante")[0].children).forEach(tag => {
@@ -184,7 +185,7 @@
                 }
             }
             quantidadeSelecionada = 15;
-            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada;
+            document.getElementById("quantidadeSpan").innerHTML = quantidadeSelecionada + " (" + Math.floor(quantidadeSelecionada/25*100) +"% da cartela preenchida)";
         }
         function removerJogo(e) {
             Array.from(document.getElementById("jogos").children).forEach((jogo,i) => {

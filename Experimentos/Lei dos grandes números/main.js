@@ -13,10 +13,11 @@ var historicoDeMedias = [];
 var linhas2 = [];
 
 function setup() {
-    canvasW = 1100;
+    canvasW = 1025;
     canvasH = 520;
     var canvas = createCanvas(canvasW, canvasH);
     canvas.parent("canvasContainer");
+    canvas.mouseClicked(clique);
     
     for (i=0; i<total; i++) {
         altura = Math.floor(random(5,100));
@@ -113,7 +114,7 @@ function draw() {
     });
 }
 
-function mouseClicked() {
+function clique() {
     if (linhasParaMover.length > 0) {
         linhaEscolhida = random(linhasParaMover);
         linhas[linhaEscolhida].mover(posicaoAtual,320);
